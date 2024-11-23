@@ -7,7 +7,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 // Check out the development branch
-                git branch: 'development', url: 'https://github.com/kishorekannanc/last-time.git'
+                git branch: 'development', url: 'https://github.com/kishorekannanc/thulasi.git'
             }
         }
         stage('Determine Version') {
