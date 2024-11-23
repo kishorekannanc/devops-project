@@ -32,7 +32,8 @@ pipeline {
             steps {
                 script {
                     // Build Docker image with port binding
-                    sh "docker build --build-arg PORT_BINDING='80:80' -t ${DOCKER_REPO}:${VERSION} ."
+                    sh 'docker build -t ${DOCKER_REPO}:${VERSION} ."
+                   // sh "docker build --build-arg PORT_BINDING='80:80' -t ${DOCKER_REPO}:${VERSION} ."
                 }
             }
         }
@@ -56,6 +57,15 @@ pipeline {
             }
         }
     }
+     stage('Run Docker Container') {
+    steps {
+        script {
+            sh '''
+            docker run -d -p 80:80 --name ${DOCKER_REPO}:${VERSION} ."
+            '''
+        }
+    }
+}
     post {
         success {
             echo "Build and deployment successful for production. Version: ${VERSION}"
