@@ -59,7 +59,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh "docker run -d -p 80:80 --name ${DOCKER_REPO}:${VERSION}"
+                    sh "docker run -d -p 80:80 ${DOCKER_REPO}:${VERSION}"
                 }
             }
         }
