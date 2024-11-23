@@ -1,0 +1,7 @@
+Version: '3'
+services :
+    app:
+        build: .
+        parts:
+           - : "80:80"
+           
