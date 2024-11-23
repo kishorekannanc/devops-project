@@ -8,6 +8,8 @@ node_modules
 *.swo
 .DS_Store
 Thumbs.db
-
 *.env
-
+# Ignore IDE and editor files
+.idea/
+.vscode/
+*.iml
