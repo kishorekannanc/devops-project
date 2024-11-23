@@ -1,4 +1,15 @@
 node_modules
 
-*.env
 
+# Ignore temporary and system files
+*.log
+*.tmp
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.env
+# Ignore IDE and editor files
+.idea/
+.vscode/
+*.iml
