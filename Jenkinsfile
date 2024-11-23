@@ -56,8 +56,7 @@ pipeline {
                 }
             }
         }
-    }
-     stage('Run Docker Container') {
+        stage('Run Docker Container') {
     steps {
         script {
             sh '''
@@ -66,6 +65,8 @@ pipeline {
         }
     }
 }
+    }
+     
     post {
         success {
             echo "Build and deployment successful for production. Version: ${VERSION}"
