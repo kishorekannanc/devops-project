@@ -7,7 +7,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 // Checkout the main branch for production
-                git branch: 'main', url: 'https://github.com/kishorekannanc/last-time.git'
+                git branch: 'main', url: 'https://github.com/kishorekannanc/thulasi.git'
             }
         }
         stage('Determine Version') {
