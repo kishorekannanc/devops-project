@@ -57,14 +57,12 @@ pipeline {
             }
         }
         stage('Run Docker Container') {
-    steps {
-        script {
-            sh '''
-            docker run -d -p 80:80 --name ${DOCKER_REPO}:${VERSION} ."
-            '''
+            steps {
+                script {
+                    sh "docker run -d -p 80:80 --name ${DOCKER_REPO}:${VERSION} ${DOCKER_REPO}:${VERSION}"
+                }
+            }
         }
-    }
-}
     }
      
     post {
