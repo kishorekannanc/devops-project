@@ -1,5 +1,6 @@
 node_modules
 
+
 # Ignore temporary and system files
 *.log
 *.tmp
