@@ -32,7 +32,7 @@ pipeline {
             steps {
                 script {
                     // Pass the development-specific image tag to build.sh
-                    sh "./build.sh ${DOCKER_REPO}:${VERSION} ."
+                    sh "./build.sh ${DOCKER_REPO}:${VERSION}"
                 }
             }
         }
