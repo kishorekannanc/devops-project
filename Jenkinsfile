@@ -10,11 +10,30 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/kishorekannanc/thulasi.git'
             }
         }
+
+        stage('Determine Version') {
+            steps {
+                script {
+                    def versionFile = 'version.txt' // Use a separate version file for the dev branch
+                    if (fileExists(versionFile)) {
+                        // Read and increment the version
+                        def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
+                        def numericPart = currentVersion.replace("v", "").toInteger()
+                        VERSION = "v${numericPart + 1}"
+                    } else {
+                        VERSION = "v1" // Default version if no version file exists
+                    }
+                    // Save the new version to the file
+                    sh "echo ${VERSION} > ${versionFile}"
+                    echo "New prod Version: ${VERSION}"
+                }
+            }
+        }
         stage('Build Docker Image') {
             steps {
                 script {
                     // Pass the development-specific image tag to build.sh
-                    sh "./build.sh ${DOCKER_REPO}:latest ."
+                    sh "./build.sh ${DOCKER_REPO}:${VERSION} ."
                 }
             }
         }
