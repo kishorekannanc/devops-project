@@ -37,16 +37,15 @@ pipeline {
                 }
             }
         }
-        stage('Push to Docker Hub') {
+        stage('Deploy to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                    sh '''
-                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                    docker push ${DOCKER_REPO}:${VERSION}
-                    '''
+                    script {
+                        // Use the deploy.sh script to push the development-specific image
+                        sh "./deploy.sh ${DOCKER_REPO}:${VERSION} $DOCKER_USERNAME $DOCKER_PASSWORD"
+                    }
                 }
             }
-        }
         stage('Run Docker Container') {
             steps {
                 script {
