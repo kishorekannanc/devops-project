@@ -10,37 +10,30 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/kishorekannanc/thulasi.git'
             }
         }
-
-      stage('Determine Version') {
-    steps {
-        script {
-            def versionFile = 'version.txt' // File containing the version
-            if (fileExists(versionFile)) {
-                // Read the current version and trim whitespace
-                def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
-                
-                // Extract numeric part by removing the "v" prefix and converting to integer
-                def numericPart = currentVersion.replaceFirst("^v", "").toInteger()
-                
-                // Increment the version number
-                VERSION = "v${numericPart + 1}"
-            } else {
-                // Default to "v1" if no version file exists
-                VERSION = "v1"
+        stage('Determine Version') {
+            steps {
+                script {
+                    def versionFile = 'version.txt'
+                    if (fileExists(versionFile)) {
+                        def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
+                        try {
+                            def numericPart = currentVersion.replaceFirst("^v", "").toInteger()
+                            VERSION = "v${numericPart + 1}"
+                        } catch (Exception e) {
+                            error "Invalid version format in version.txt: ${currentVersion}"
+                        }
+                    } else {
+                        VERSION = "v1"
+                    }
+                    sh "echo ${VERSION} > ${versionFile}"
+                    echo "New main branch version: ${VERSION}"
+                }
             }
-
-            // Save the new version to the version file
-            sh "echo ${VERSION} > ${versionFile}"
-            echo "New main branch version: ${VERSION}"
         }
-    }
-}
-
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Pass the development-specific image tag to build.sh
-                    sh "./build.sh ${DOCKER_REPO}:${VERSION} ."
+                    sh "docker build -t ${DOCKER_REPO}:${VERSION} ."
                 }
             }
         }
@@ -58,15 +51,16 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    # Stop and remove the old container if it exists
-                    if [ $(docker ps -aq -f name=devops-react-app) ]; then
-                        docker stop devops-react-app || true
-                        docker rm devops-react-app || true
-                    fi
-
-                    # Run the new container with port binding
+                    docker rm -f devops-react-app || true
                     docker run -d -p 80:80 --name devops-react-app ${DOCKER_REPO}:${VERSION}
                     '''
+                }
+            }
+        }
+        stage('Cleanup Docker Images') {
+            steps {
+                script {
+                    sh 'docker image prune -f'
                 }
             }
         }
