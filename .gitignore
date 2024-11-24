@@ -1,4 +1,31 @@
-node_modules
-build
-*.env
+# Ignore environment variables
+.env
+.env.*
 
+# Logs
+*.log
+logs/
+
+# Dependency directories
+node_modules/
+vendor/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Build and deployment
+build/
+dist/
+target/
+
+# Docker
+*.env
+.dockerignore
+
+
+# IDE-specific files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
