@@ -1,1 +1,1 @@
-echo "v1" > VERSION
+v1
