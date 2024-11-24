@@ -1,1 +1,2 @@
-echo "v1.0.0" > VERSION
+v1
+
