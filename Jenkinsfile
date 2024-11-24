@@ -3,6 +3,7 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('credentials')
         DOCKER_REPO = 'kishorekannan23/prod'
+        VERSION_FILE = 'version.txt' // Define the version file name here
     }
     stages {
         stage('Checkout Code') {
@@ -13,8 +14,8 @@ pipeline {
         stage('Validate Version File') {
             steps {
                 script {
-                    if (!fileExists('VERSION')) {
-                        error "VERSION file is missing. Please add a VERSION file to the repository."
+                    if (!fileExists(VERSION_FILE)) {
+                        error "${VERSION_FILE} file is missing. Please add ${VERSION_FILE} to the repository."
                     }
                 }
             }
@@ -27,7 +28,7 @@ pipeline {
         stage('Read Version') {
             steps {
                 script {
-                    VERSION = readFile('VERSION').trim()
+                    VERSION = readFile(VERSION_FILE).trim()
                     echo "Building version: ${VERSION}"
                 }
             }
