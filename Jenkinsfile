@@ -3,7 +3,6 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('credentials') // Ensure this is the correct credentials ID
         DOCKER_REPO = 'kishorekannan23/prod'
-        versionFile = 'version.txt'
     }
     stages {
         stage('Checkout Code') {
@@ -16,13 +15,20 @@ pipeline {
                 script {
                     def versionFile = 'version.txt'
                     if (fileExists(versionFile)) {
-                        // Read and increment the version
+                        // Read the current version
                         def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
-                        def numericPart = currentVersion.replace("v", "").toInteger()
-                        VERSION = "v${numericPart + 1}"
+                        def versionParts = currentVersion.split('\\.') // Split into major, minor, patch
+                        def major = versionParts[0].toInteger()
+                        def minor = versionParts[1].toInteger()
+                        def patch = versionParts[2].toInteger()
+
+                        // Increment the patch version
+                        patch += 1
+                        VERSION = "${major}.${minor}.${patch}" // Construct the new version
                     } else {
-                        VERSION = "v1" // Default version if no version file exists
+                        VERSION = "1.0.0" // Default version if no file exists
                     }
+
                     // Save the new version to the file
                     sh "echo ${VERSION} > ${versionFile}"
                     echo "New Version: ${VERSION}"
@@ -50,16 +56,16 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh """
+                    sh '''
                     # Stop and remove the old container if it exists
-                    if [ \$(docker ps -aq -f name=devops-react-app) ]; then
+                    if [ $(docker ps -aq -f name=devops-react-app) ]; then
                         docker stop devops-react-app || true
                         docker rm devops-react-app || true
                     fi
 
                     # Run the new container with port binding
-                    docker run -d -p 80:80 --name devops-react-app ${DOCKER_REPO}:${VERSION}
-                    """
+                    docker run -d -p 80:80 --name devops-react-app $DOCKER_REPO:$VERSION
+                    '''
                 }
             }
         }
