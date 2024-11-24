@@ -61,7 +61,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_REPO}:${VERSION} ."
+                    // Pass the development-specific image tag to build.sh
+                    sh "./build.sh ${DOCKER_REPO}:${VERSION}"
                 }
             }
         }
