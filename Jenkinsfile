@@ -10,41 +10,24 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/kishorekannanc/thulasi.git'
             }
         }
-        stage('Determine Version') {
-            steps {
-                script {
-                    def versionFile = 'main-version.txt' // Use a separate version file for the dev branch
-                    if (fileExists(versionFile)) {
-                        // Read and increment the version
-                        def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
-                        def numericPart = currentVersion.replace("v", "").toInteger()
-                        VERSION = "v${numericPart + 1}"
-                    } else {
-                        VERSION = "v1" // Default version if no version file exists
-                    }
-                    // Save the new version to the file
-                    sh "echo ${VERSION} > ${versionFile}"
-                    echo "New Development Version: ${VERSION}"
-                }
-            }
-        }
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image with the determined version
-                    sh "docker build -t ${DOCKER_REPO}:${VERSION} ."
+                    // Pass the development-specific image tag to build.sh
+                    sh "./build.sh ${DOCKER_REPO}:latest ."
                 }
             }
         }
-        stage('Deploy to Docker Hub') {
+        stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                    script {
-                        // Use the deploy.sh script to push the development-specific image
-                        sh "./deploy.sh ${DOCKER_REPO}:${VERSION} $DOCKER_USERNAME $DOCKER_PASSWORD"
-                    }
+                    sh '''
+                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                    docker push $DOCKER_REPO:latest
+                    '''
                 }
             }
+        }
         stage('Run Docker Container') {
             steps {
                 script {
@@ -56,7 +39,7 @@ pipeline {
                     fi
 
                     # Run the new container with port binding
-                    docker run -d -p 80:80 --name devops-react-app $DOCKER_REPO:$VERSION
+                    docker run -d -p 80:80 --name devops-react-app $DOCKER_REPO:latest
                     '''
                 }
             }
@@ -64,11 +47,10 @@ pipeline {
     }
     post {
         success {
-            echo "Build, push, and deployment successful. Version: ${VERSION}"
+            echo 'Build, push, and container deployment successful.'
         }
         failure {
-            echo "Build or deployment failed."
+            echo 'Build failed.'
         }
     }
-}
 }
