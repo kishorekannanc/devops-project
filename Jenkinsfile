@@ -3,6 +3,7 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('credentials') // Ensure this is the correct credentials ID
         DOCKER_REPO = 'kishorekannan23/prod'
+        verdionFile = 'version.txt'
     }
     stages {
         stage('Checkout Code') {
