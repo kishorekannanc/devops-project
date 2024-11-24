@@ -20,11 +20,6 @@ __pycache__/
 Thumbs.db
 desktop.ini
 
-# Build and deployment directories
-
-dist/
-target/
-
 # Logs and temporary files
 *.log
 *.swp
