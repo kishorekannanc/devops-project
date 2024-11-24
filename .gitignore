@@ -2,27 +2,3 @@
 .env
 .env.*
 
-# Logs
-*.log
-logs/
-
-# Dependency directories
-node_modules/
-vendor/
-
-# OS-specific files
-.DS_Store
-Thumbs.db
-
-# Docker
-*.env
-.dockerignore
-
-
-# IDE-specific files
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-
-
