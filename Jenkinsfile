@@ -1,9 +1,8 @@
 pipeline {
     agent any
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('credentials') // Update with your actual credentials ID
+        DOCKER_HUB_CREDENTIALS = credentials('credentials') // Ensure this is the correct credentials ID
         DOCKER_REPO = 'kishorekannan23/prod'
-        VERSION_FILE = 'version.txt'
     }
     stages {
         stage('Checkout Code') {
@@ -11,61 +10,45 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/kishorekannanc/thulasi.git'
             }
         }
-        stage('Validate Version File') {
-            steps {
-                script {
-                    if (!fileExists(VERSION_FILE)) {
-                        error "${VERSION_FILE} file is missing. Please add ${VERSION_FILE} to the repository."
-                    }
-                }
-            }
-        }
-        stage('Determine Version') {
-            steps {
-                script {
-                    def currentVersion = fileExists(VERSION_FILE) ? readFile(VERSION_FILE).trim() : "v0"
-                    def numericPart = currentVersion.replace("v", "").toInteger()
-                    VERSION = "v${numericPart + 1}"
-                    writeFile file: VERSION_FILE, text: VERSION
-                    echo "Determined Version: ${VERSION}"
-                }
-            }
-        }
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh """
-                    docker buildx create --use || true
-                    docker buildx build --platform linux/amd64 -t ${DOCKER_REPO}:${VERSION} .
-                    """
+                    sh '''
+                    docker build -t $DOCKER_REPO:latest .
+                    '''
                 }
             }
         }
         stage('Push to Docker Hub') {
             steps {
-                script {
-                    sh """
-                    echo ${DOCKER_HUB_CREDENTIALS_PSW} | docker login -u ${DOCKER_HUB_CREDENTIALS_USR} --password-stdin
-                    docker push ${DOCKER_REPO}:${VERSION}
-                    """
+                withCredentials([usernamePassword(credentialsId: 'credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    sh '''
+                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                    docker push $DOCKER_REPO:latest
+                    '''
                 }
             }
         }
-        stage('Deploy Container') {
+        stage('Run Docker Container') {
             steps {
                 script {
-                    sh """
-                    docker stop prod-container || true
-                    docker rm prod-container || true
-                    docker run -d --name prod-container -p 80:80 ${DOCKER_REPO}:${VERSION}
-                    """
+                    sh '''
+                    # Stop and remove the old container if it exists
+                    if [ $(docker ps -aq -f name=devops-react-app) ]; then
+                        docker stop devops-react-app || true
+                        docker rm devops-react-app || true
+                    fi
+
+                    # Run the new container with port binding
+                    docker run -d -p 80:80 --name devops-react-app $DOCKER_REPO:latest
+                    '''
                 }
             }
         }
     }
     post {
         success {
-            echo 'Build, push, and deployment successful.'
+            echo 'Build, push, and container deployment successful.'
         }
         failure {
             echo 'Build failed.'
