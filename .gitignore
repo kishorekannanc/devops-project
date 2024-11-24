@@ -15,7 +15,7 @@ vendor/
 Thumbs.db
 
 # Build and deployment
-build/
+
 dist/
 target/
 
