@@ -1,77 +1,84 @@
 pipeline {
     agent any
     environment {
+        DOCKER_HUB_CREDENTIALS = credentials('credentials')
         DOCKER_REPO = 'kishorekannan23/prod'
     }
     stages {
         stage('Checkout Code') {
             steps {
-                // Checkout the main branch for production
                 git branch: 'main', url: 'https://github.com/kishorekannanc/thulasi.git'
             }
         }
-        stage('Determine Version') {
+        stage('Validate Version File') {
             steps {
                 script {
-                    def versionFile = 'version.txt' // Version file for production
-                    if (fileExists(versionFile)) {
-                        // Read and increment the version
-                        def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
-                        def numericPart = currentVersion.replace("v", "").toInteger()
-                        VERSION = "v${numericPart + 1}"
-                    } else {
-                        VERSION = "v1" // Default version if no version file exists
+                    if (!fileExists('VERSION')) {
+                        error "VERSION file is missing. Please add a VERSION file to the repository."
                     }
-                    // Save the new version to the file
-                    sh "echo ${VERSION} > ${versionFile}"
-                    echo "New Production Version: ${VERSION}"
+                }
+            }
+        }
+        stage('Increment Version') {
+            steps {
+                sh './build.sh'
+            }
+        }
+        stage('Read Version') {
+            steps {
+                script {
+                    VERSION = readFile('VERSION').trim()
+                    echo "Building version: ${VERSION}"
+                }
+            }
+        }
+        stage('Remove Old Image') {
+            steps {
+                script {
+                    sh """
+                    docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                    if docker images | grep -q ${DOCKER_REPO}; then
+                        docker rmi -f ${DOCKER_REPO}:${VERSION}
+                    fi
+                    """
                 }
             }
         }
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image with port binding
                     sh "docker build -t ${DOCKER_REPO}:${VERSION} ."
-                   // sh "docker build --build-arg PORT_BINDING='80:80' -t ${DOCKER_REPO}:${VERSION} ."
                 }
             }
         }
-        stage('Deploy to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                    script {
-                        // Push the built image to Docker Hub
-                        sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
-                        sh "docker push ${DOCKER_REPO}:${VERSION}"
-                    }
-                }
-            }
-        }
-        stage('Cleanup Old Images') {
+        stage('Push to Docker Hub') {
             steps {
                 script {
-                    // Remove older versions of the image from the local Docker system
-                    sh "docker image prune -a -f --filter label=${DOCKER_REPO}"
+                    sh """
+                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                    docker push ${DOCKER_REPO}:${VERSION}
+                    """
                 }
             }
         }
-        stage('Run Docker Container') {
+        stage('Deploy Container') {
             steps {
                 script {
-                    "docker run -d -p 80:80 --name devops-react-app ${DOCKER_REPO}:${VERSION}"
+                    sh """
+                    docker stop prod-container || true
+                    docker rm prod-container || true
+                    docker run -d --name prod-container -p 80:80 ${DOCKER_REPO}:${VERSION}
+                    """
                 }
             }
         }
     }
-     
     post {
         success {
-            echo "Build and deployment successful for production. Version: ${VERSION}"
+            echo 'Build, push, and deployment successful.'
         }
         failure {
-            echo "Build or deployment failed for production."
+            echo 'Build failed.'
         }
     }
 }
-
