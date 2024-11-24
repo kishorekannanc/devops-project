@@ -52,7 +52,7 @@ pipeline {
             echo "Build and deployment successful for development branch. Version: ${VERSION}"
         }
         failure {
-            echo "Build or deployment failed for development branch."
+            echo "Build or deployment failed for development branch.."
         }
     }
 }
