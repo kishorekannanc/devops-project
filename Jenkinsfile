@@ -3,7 +3,7 @@ pipeline {
     environment {
         DOCKER_REPO = 'kishorekannan23/prod'
         VERSION = '' // To store the dynamically determined version
-        CONTAINER_NAME = 'main_app_container' // Name of the container to ensure we can stop/remove it if it exists
+        CONTAINER_NAME = 'devops-react-app' // Name of the container to ensure we can stop/remove it if it exists
         HOST_PORT = '80' // The host port to bind to
         CONTAINER_PORT = '80' // The container port exposed by the app
     }
