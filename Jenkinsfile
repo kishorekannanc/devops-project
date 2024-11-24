@@ -49,7 +49,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                     sh '''
                     echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                    docker push $DOCKER_REPO:latest
+                    docker push ${DOCKER_REPO}:${VERSION}
                     '''
                 }
             }
@@ -65,7 +65,7 @@ pipeline {
                     fi
 
                     # Run the new container with port binding
-                    docker run -d -p 80:80 --name devops-react-app $DOCKER_REPO:latest
+                    docker run -d -p 80:80 --name devops-react-app ${DOCKER_REPO}:${VERSION}
                     '''
                 }
             }
