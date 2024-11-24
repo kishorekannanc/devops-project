@@ -20,11 +20,22 @@ pipeline {
                 }
             }
         }
-        stage('Increment Version') {
+        stage('Determine Version') {
             steps {
-                sh './build.sh'
-            }
-        }
+                script {
+                    def versionFile = 'main-version.txt' // Use a separate version file for the dev branch
+                    if (fileExists(versionFile)) {
+                        // Read and increment the version
+                        def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
+                        def numericPart = currentVersion.replace("v", "").toInteger()
+                        VERSION = "v${numericPart + 1}"
+                    } else {
+                        VERSION = "v1" // Default version if no version file exists
+                    }
+                    // Save the new version to the file
+                    sh "echo ${VERSION} > ${versionFile}"
+                    echo "New Development Version: ${VERSION}"
+                }
         stage('Read Version') {
             steps {
                 script {
