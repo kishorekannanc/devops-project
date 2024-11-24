@@ -1,15 +1,31 @@
+# Ignore Git-related files
+.git
+.gitignore
+
+# Node.js / JavaScript specific
 node_modules
+npm-debug.log
+yarn-error.log
 
+# Python specific
+__pycache__/
+*.py[cod]
 
-# Ignore temporary and system files
-*.log
-*.tmp
-*.swp
-*.swo
+# Docker-specific
+
+*.env
+
+# OS-generated files
 .DS_Store
 Thumbs.db
-*.env
-# Ignore IDE and editor files
-.idea/
-.vscode/
-*.iml
+desktop.ini
+
+# Build and deployment directories
+
+dist/
+target/
+
+# Logs and temporary files
+*.log
+*.swp
+tmp/
