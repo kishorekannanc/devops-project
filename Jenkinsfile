@@ -24,7 +24,7 @@ pipeline {
                     }
                     // Save the new version to the file
                     sh "echo ${VERSION} > ${versionFile}"
-                    echo "New Development Version: ${VERSION}"
+                    echo "New Development Version: ${VERSION} ."
                 }
             }
         }
