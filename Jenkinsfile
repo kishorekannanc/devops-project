@@ -1,75 +1,59 @@
 pipeline {
     agent any
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('credentials') // Ensure this is the correct credentials ID
         DOCKER_REPO = 'kishorekannan23/prod'
+        VERSION = '' // To store the dynamically determined version
     }
     stages {
         stage('Checkout Code') {
             steps {
+                // Check out the main branch
                 git branch: 'main', url: 'https://github.com/kishorekannanc/thulasi.git'
             }
         }
         stage('Determine Version') {
             steps {
                 script {
-                    def versionFile = 'version.txt'
+                    def versionFile = 'version.txt' // Version file for the main branch
                     if (fileExists(versionFile)) {
+                        // Read and increment the version
                         def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
-                        try {
-                            def numericPart = currentVersion.replaceFirst("^v", "").toInteger()
-                            VERSION = "v${numericPart + 1}"
-                        } catch (Exception e) {
-                            error "Invalid version format in version.txt: ${currentVersion}"
-                        }
+                        def numericPart = currentVersion.replace("v", "").toInteger()
+                        VERSION = "v${numericPart + 1}"
                     } else {
-                        VERSION = "v1"
+                        VERSION = "v1" // Default version if no version file exists
                     }
+                    // Save the new version to the file
                     sh "echo ${VERSION} > ${versionFile}"
-                    echo "New main branch version: ${VERSION}"
+                    echo "New Main Branch Version: ${VERSION}"
                 }
             }
         }
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Build the Docker image
                     sh "docker build -t ${DOCKER_REPO}:${VERSION} ."
                 }
             }
         }
-        stage('Deploy to Docker Hub') {
+        stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                     script {
-                        // Use the deploy.sh script to push the development-specific image
+                        // Call the deploy.sh script to handle Docker login and image push
                         sh "./deploy.sh ${DOCKER_REPO}:${VERSION} $DOCKER_USERNAME $DOCKER_PASSWORD"
                     }
-                }
-            }
-        stage('Run Docker Container') {
-            steps {
-                script {
-                    sh '''
-                    docker rm -f devops-react-app || true
-                    docker run -d -p 80:80 --name devops-react-app ${DOCKER_REPO}:${VERSION}
-                    '''
-                }
-            }
-        }
-        stage('Cleanup Docker Images') {
-            steps {
-                script {
-                    sh 'docker image prune -f'
                 }
             }
         }
     }
     post {
         success {
-            echo 'Build, push, and container deployment successful.'
+            echo "Build, push, and deployment successful for main branch. Version: ${VERSION}"
         }
         failure {
-            echo 'Build failed.'
+            echo "Build, push, or deployment failed for main branch."
         }
     }
 }
