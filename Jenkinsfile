@@ -24,7 +24,7 @@ pipeline {
                     }
                     // Save the new version to the file
                     sh "echo ${VERSION} > ${versionFile}"
-                    echo "New Development Version: ${VERSION} ."
+                    echo "New Development Version: ${VERSION}"
                 }
             }
         }
@@ -32,7 +32,7 @@ pipeline {
             steps {
                 script {
                     // Pass the development-specific image tag to build.sh
-                    sh "./build.sh ${DOCKER_REPO}:${VERSION}"
+                    sh "./build.sh ${DOCKER_REPO}:${VERSION} ."
                 }
             }
         }
