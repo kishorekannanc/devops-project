@@ -10,11 +10,29 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/kishorekannanc/thulasi.git'
             }
         }
+        stage('Determine Version') {
+            steps {
+                script {
+                    def versionFile = 'version.txt'
+                    if (fileExists(versionFile)) {
+                        // Read and increment the version
+                        def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
+                        def numericPart = currentVersion.replace("v", "").toInteger()
+                        VERSION = "v${numericPart + 1}"
+                    } else {
+                        VERSION = "v1" // Default version if no version file exists
+                    }
+                    // Save the new version to the file
+                    sh "echo ${VERSION} > ${versionFile}"
+                    echo "New Version: ${VERSION}"
+                }
+            }
+        }
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Pass the development-specific image tag to build.sh
-                    sh "./build.sh ${DOCKER_REPO}:latest ."
+                    // Build Docker image with the determined version
+                    sh "docker build -t ${DOCKER_REPO}:${VERSION} ."
                 }
             }
         }
@@ -23,7 +41,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                     sh '''
                     echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                    docker push $DOCKER_REPO:latest
+                    docker push $DOCKER_REPO:$VERSION
                     '''
                 }
             }
@@ -31,26 +49,26 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh '''
+                    sh """
                     # Stop and remove the old container if it exists
-                    if [ $(docker ps -aq -f name=devops-react-app) ]; then
+                    if [ \$(docker ps -aq -f name=devops-react-app) ]; then
                         docker stop devops-react-app || true
                         docker rm devops-react-app || true
                     fi
 
                     # Run the new container with port binding
-                    docker run -d -p 80:80 --name devops-react-app $DOCKER_REPO:latest
-                    '''
+                    docker run -d -p 80:80 --name devops-react-app ${DOCKER_REPO}:${VERSION}
+                    """
                 }
             }
         }
     }
     post {
         success {
-            echo 'Build, push, and container deployment successful.'
+            echo "Build, push, and deployment successful. Version: ${VERSION}"
         }
         failure {
-            echo 'Build failed.'
+            echo "Build or deployment failed."
         }
     }
 }
