@@ -46,18 +46,18 @@ pipeline {
                 }
             }
         }
-        stage('Remove Old Image') {
-            steps {
-                script {
-                    sh """
-                    docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-                    if docker images | grep -q ${DOCKER_REPO}; then
-                        docker rmi -f ${DOCKER_REPO}:${VERSION}
-                    fi
-                    """
-                }
-            }
-        }
+        //stage('Remove Old Image') {
+          //  steps {
+           //     script {
+            //        sh """
+              //      docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                //    if docker images | grep -q ${DOCKER_REPO}; then
+                  //      docker rmi -f ${DOCKER_REPO}:${VERSION}
+                    //fi
+                    //"""
+               // }
+           // }
+        //}
         stage('Build Docker Image') {
             steps {
                 script {
