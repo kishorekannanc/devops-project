@@ -17,7 +17,7 @@ pipeline {
         stage('Determine Version') {
             steps {
                 script {
-                    def versionFile = 'version.txt' // Version file for the main branch
+                    def versionFile = 'development-version.txt' // Version file for the main branch
                     if (fileExists(versionFile)) {
                         // Read and increment the version
                         def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
