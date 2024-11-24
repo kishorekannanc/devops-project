@@ -13,25 +13,18 @@ pipeline {
         stage('Determine Version') {
             steps {
                 script {
-                    def versionFile = 'version.txt'
+                    def versionFile = 'main-version.txt' // Use a separate version file for the dev branch
                     if (fileExists(versionFile)) {
-                        // Read the current version
+                        // Read and increment the version
                         def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
-                        def versionParts = currentVersion.split('\\.') // Split into major, minor, patch
-                        def major = versionParts[0].toInteger()
-                        def minor = versionParts[1].toInteger()
-                        def patch = versionParts[2].toInteger()
-
-                        // Increment the patch version
-                        patch += 1
-                        VERSION = "${major}.${minor}.${patch}" // Construct the new version
+                        def numericPart = currentVersion.replace("v", "").toInteger()
+                        VERSION = "v${numericPart + 1}"
                     } else {
-                        VERSION = "1.0.0" // Default version if no file exists
+                        VERSION = "v1" // Default version if no version file exists
                     }
-
                     // Save the new version to the file
                     sh "echo ${VERSION} > ${versionFile}"
-                    echo "New Version: ${VERSION}"
+                    echo "New Development Version: ${VERSION}"
                 }
             }
         }
