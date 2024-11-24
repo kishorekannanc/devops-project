@@ -38,19 +38,15 @@ pipeline {
             }
         }
         stage('Push to Docker Hub') {
-    steps {
-        withCredentials([usernamePassword(credentialsId: 'credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-            script {
-                echo "Pushing image ${DOCKER_REPO}:${VERSION} to Docker Hub"
-                sh '''
-                echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                docker push ${DOCKER_REPO}:${VERSION}
-                '''
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    sh '''
+                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                    docker push ${DOCKER_REPO}:${VERSION}
+                    '''
+                }
             }
         }
-    }
-}
-
         stage('Run Docker Container') {
             steps {
                 script {
