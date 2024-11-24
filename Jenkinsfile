@@ -1,9 +1,9 @@
 pipeline {
     agent any
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('credentials')
+        DOCKER_HUB_CREDENTIALS = credentials('credentials') // Update with your actual credentials ID
         DOCKER_REPO = 'kishorekannan23/prod'
-        VERSION_FILE = 'version.txt' // Define the version file name here
+        VERSION_FILE = 'version.txt'
     }
     stages {
         stage('Checkout Code') {
@@ -23,46 +23,21 @@ pipeline {
         stage('Determine Version') {
             steps {
                 script {
-                    def versionFile = 'main-version.txt' // Use a separate version file for the dev branch
-                    if (fileExists(versionFile)) {
-                        // Read and increment the version
-                        def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
-                        def numericPart = currentVersion.replace("v", "").toInteger()
-                        VERSION = "v${numericPart + 1}"
-                    } else {
-                        VERSION = "v1" // Default version if no version file exists
-                    }
-                    // Save the new version to the file
-                    sh "echo ${VERSION} > ${versionFile}"
-                    echo "New Development Version: ${VERSION}"
+                    def currentVersion = fileExists(VERSION_FILE) ? readFile(VERSION_FILE).trim() : "v0"
+                    def numericPart = currentVersion.replace("v", "").toInteger()
+                    VERSION = "v${numericPart + 1}"
+                    writeFile file: VERSION_FILE, text: VERSION
+                    echo "Determined Version: ${VERSION}"
                 }
             }
         }
-        stage('Read Version') {
-            steps {
-                script {
-                    VERSION = readFile(VERSION_FILE).trim()
-                    echo "Building version: ${VERSION}"
-                }
-            }
-        }
-        //stage('Remove Old Image') {
-          //  steps {
-           //     script {
-            //        sh """
-              //      docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-                //    if docker images | grep -q ${DOCKER_REPO}; then
-                  //      docker rmi -f ${DOCKER_REPO}:${VERSION}
-                    //fi
-                    //"""
-               // }
-           // }
-        //}
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Pass the development-specific image tag to build.sh
-                    sh "./build.sh ${DOCKER_REPO}:${VERSION}"
+                    sh """
+                    docker buildx create --use || true
+                    docker buildx build --platform linux/amd64 -t ${DOCKER_REPO}:${VERSION} .
+                    """
                 }
             }
         }
@@ -70,7 +45,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                    echo ${DOCKER_HUB_CREDENTIALS_PSW} | docker login -u ${DOCKER_HUB_CREDENTIALS_USR} --password-stdin
                     docker push ${DOCKER_REPO}:${VERSION}
                     """
                 }
@@ -97,5 +72,3 @@ pipeline {
         }
     }
 }
-
-
