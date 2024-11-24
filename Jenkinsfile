@@ -36,6 +36,8 @@ pipeline {
                     sh "echo ${VERSION} > ${versionFile}"
                     echo "New Development Version: ${VERSION}"
                 }
+            }
+        }
         stage('Read Version') {
             steps {
                 script {
@@ -93,4 +95,6 @@ pipeline {
             echo 'Build failed.'
         }
     }
+}
+
 }
