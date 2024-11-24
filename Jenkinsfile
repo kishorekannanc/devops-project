@@ -11,24 +11,31 @@ pipeline {
             }
         }
 
-        stage('Determine Version') {
-            steps {
-                script {
-                    def versionFile = 'version.txt' // Use a separate version file for the dev branch
-                    if (fileExists(versionFile)) {
-                        // Read and increment the version
-                        def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
-                        def numericPart = currentVersion.replace("v", "").toInteger()
-                        VERSION = "v${numericPart + 1}"
-                    } else {
-                        VERSION = "v1" // Default version if no version file exists
-                    }
-                    // Save the new version to the file
-                    sh "echo ${VERSION} > ${versionFile}"
-                    echo "New prod Version: ${VERSION}"
-                }
+      stage('Determine Version') {
+    steps {
+        script {
+            def versionFile = 'version.txt' // File containing the version
+            if (fileExists(versionFile)) {
+                // Read the current version and trim whitespace
+                def currentVersion = sh(script: "cat ${versionFile}", returnStdout: true).trim()
+                
+                // Extract numeric part by removing the "v" prefix and converting to integer
+                def numericPart = currentVersion.replaceFirst("^v", "").toInteger()
+                
+                // Increment the version number
+                VERSION = "v${numericPart + 1}"
+            } else {
+                // Default to "v1" if no version file exists
+                VERSION = "v1"
             }
+
+            // Save the new version to the version file
+            sh "echo ${VERSION} > ${versionFile}"
+            echo "New main branch version: ${VERSION}"
         }
+    }
+}
+
         stage('Build Docker Image') {
             steps {
                 script {
