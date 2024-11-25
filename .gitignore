@@ -1,1 +1,53 @@
+# Node.js dependencies (if applicable)
+node_modules/
+npm-debug.log*
+
+# Build output
+build/
+
+# Docker-related files
+*.tar
+*.log
+docker-compose.override.yml
+
+# Local environment and temporary files
+.env
+.env.local
+.env.*.local
+*.log
+*.tmp
+*.pid
+*.lock
+
+# Version control metadata
+.git/
+.gitignore
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# System cache files
+*.bak
+~*
+
+# Sensitive keys and certificates
+*.pem
+*.key
+
+# Test files and directories
+tests/
+test/
+__pycache__/
+*.pyc
+*.pyo
+
+# Build scripts (retain these in Git since they're important for CI/CD)
+# Retain build.sh and deploy.sh because they need to be version-controlled.
+!build.sh
+!deploy.sh
 
