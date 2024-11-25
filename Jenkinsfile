@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 // Check out the main branch
-                git branch: 'main', url: 'https://github.com/kishorekannanc/thulasi.git'
+                git branch: 'main', url: 'https://github.com/kishorekannanc/devops-project.git'
             }
         }
         stage('Determine Version') {
