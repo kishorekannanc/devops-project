@@ -1,1 +1,36 @@
+# Exclude unnecessary files from the Docker build context
+
+# Node.js dependencies (if applicable)
+node_modules/
+npm-debug.log*
+
+# Local environment and temporary files
+.env
+*.log
+*.tmp
+*.lock
+
+# Version control files
+.git/
+.gitignore
+
+# IDE and editor settings
+.vscode/
+.idea/
+
+# System-specific files
+.DS_Store
+Thumbs.db
+
+# Test files and directories
+test/
+tests/
+__pycache__/
+
+# Exclude development-specific files
+*.bak
+development-version.txt
+
+# Exclude everything except the `build` directory for Nginx
+!build/
 
